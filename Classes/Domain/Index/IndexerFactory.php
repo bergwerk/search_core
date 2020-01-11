@@ -22,7 +22,6 @@ namespace Codappix\SearchCore\Domain\Index;
 
 use Codappix\SearchCore\Configuration\ConfigurationContainerInterface;
 use Codappix\SearchCore\Configuration\InvalidArgumentException;
-use Codappix\SearchCore\Domain\Index\IndexerInterface;
 use Codappix\SearchCore\Domain\Index\TcaIndexer\TcaTableServiceInterface;
 use TYPO3\CMS\Core\SingletonInterface as Singleton;
 use TYPO3\CMS\Extbase\Object\ObjectManagerInterface;
@@ -63,7 +62,7 @@ class IndexerFactory implements Singleton
             $indexConfiguration = $this->getIndexConfiguration($identifier);
 
             if (!is_array($indexConfiguration) || !isset($indexConfiguration['indexer'])) {
-                throw new \InvalidArgumentException();
+                throw new InvalidArgumentException();
             }
 
             return $this->buildIndexer($indexConfiguration['indexer'], $identifier);
