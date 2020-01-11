@@ -60,7 +60,13 @@ class IndexerFactory implements Singleton
     public function getIndexer(string $identifier) : IndexerInterface
     {
         try {
-            return $this->buildIndexer($this->configuration->get('indexing.' . $identifier . '.indexer'), $identifier);
+            $indexConfiguration = $this->getIndexConfiguration($identifier);
+
+            if (!is_array($indexConfiguration) || !isset($indexConfiguration['indexer'])) {
+                throw new \InvalidArgumentException();
+            }
+
+            return $this->buildIndexer($indexConfiguration['indexer'], $identifier);
         } catch (NoMatchingIndexerException $e) {
             // Nothing to do, we throw exception below
         } catch (InvalidArgumentException $e) {
@@ -100,5 +106,32 @@ class IndexerFactory implements Singleton
         $indexer->setIdentifier($identifier);
 
         return $indexer;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLocalIndexList()
+    {
+        $list = $this->configuration->get('indexing');
+
+        if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][IndexerFactory::class]['getLocalIndexList'])) {
+            foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][IndexerFactory::class]['getLocalIndexList'] as $_funcRef) {
+                \TYPO3\CMS\Core\Utility\GeneralUtility::callUserFunction($_funcRef, $list, $this);
+            }
+        }
+
+        return $list;
+    }
+
+    protected function getIndexConfiguration($documentType)
+    {
+        foreach ($this->getLocalIndexList() as $indexType => $indexConfig) {
+            if ($indexType == $documentType) {
+                return $indexConfig;
+            }
+        }
+
+        return [];
     }
 }
