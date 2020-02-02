@@ -24,6 +24,7 @@ use Codappix\SearchCore\Configuration\ConfigurationContainerInterface;
 use Codappix\SearchCore\Configuration\InvalidArgumentException;
 use Codappix\SearchCore\Domain\Index\TcaIndexer\TcaTableServiceInterface;
 use TYPO3\CMS\Core\SingletonInterface as Singleton;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManagerInterface;
 
 /**
@@ -54,7 +55,7 @@ class IndexerFactory implements Singleton
     }
 
     /**
-     * @throws NoMatchingIndexer
+     * @throws NoMatchingIndexerException
      */
     public function getIndexer(string $identifier) : IndexerInterface
     {
@@ -62,7 +63,7 @@ class IndexerFactory implements Singleton
             $indexConfiguration = $this->getIndexConfiguration($identifier);
 
             if (!is_array($indexConfiguration) || !isset($indexConfiguration['indexer'])) {
-                throw new InvalidArgumentException();
+                throw new \InvalidArgumentException();
             }
 
             return $this->buildIndexer($indexConfiguration['indexer'], $identifier);
@@ -76,7 +77,7 @@ class IndexerFactory implements Singleton
     }
 
     /**
-     * @throws NoMatchingIndexer
+     * @throws NoMatchingIndexerException
      */
     protected function buildIndexer(string $indexerClass, string $identifier) : IndexerInterface
     {
@@ -116,7 +117,7 @@ class IndexerFactory implements Singleton
 
         if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][IndexerFactory::class]['getLocalIndexList'])) {
             foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][IndexerFactory::class]['getLocalIndexList'] as $_funcRef) {
-                \TYPO3\CMS\Core\Utility\GeneralUtility::callUserFunction($_funcRef, $list, $this);
+                GeneralUtility::callUserFunction($_funcRef, $list, $this);
             }
         }
 
@@ -131,6 +132,6 @@ class IndexerFactory implements Singleton
             }
         }
 
-        return [];
+        throw new NoMatchingIndexerException();
     }
 }
